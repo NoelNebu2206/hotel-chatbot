@@ -16,13 +16,16 @@ app.get('/', (req, res) => {
 
 app.post('/message', async (req, res) => {
     const { message } = req.body;
+    console.log('Received message:', message);
     try {
         const response = await cohere.chat({
-            model: 'command',
+            model: 'command-r',
             message: message,
         });
-        res.json({ response: response.chat });
+        console.log('Cohere response:', response);
+        res.json({ response: response.text });
     } catch (error) {
+        console.error('Error processing message:', error);
         res.status(500).send('Error processing message');
     }
 });
