@@ -1,10 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const { CohereClient } = require('cohere-ai');
 const app = express();
 const port = process.env.PORT || 3000;
 
 const cohere = new CohereClient({
-    token: 'AtPKXCoEnTZlZdO2ntfu45juRMYkNtAvZdWssjWS',
+    token: process.env.COHERE_API_KEY,
 });
 
 app.use(express.json());
