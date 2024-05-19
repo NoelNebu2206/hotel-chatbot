@@ -1,6 +1,20 @@
 import logo from './logo.svg';
 import './App.css';
 
+import React from 'react';
+import ChatWindow from './components/ChatWindow';
+import './ChatWindow.css';
+
+function App() {
+    return (
+        <div className="App">
+            <h1>Let's Chat!</h1>
+            <ChatWindow />
+        </div>
+    );
+}
+
+/*
 function App() {
   return (
     <div className="App">
@@ -21,5 +35,6 @@ function App() {
     </div>
   );
 }
+*/
 
 export default App;
