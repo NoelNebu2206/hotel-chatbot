@@ -15,15 +15,23 @@ app.get('/', (req, res) => {
 });
 
 app.post('/message', async (req, res) => {
-    const { message } = req.body;
-    console.log('Received message:', message);
+    const { message, chatHistory } = req.body;
+    //console.log('Received message:', message);
     try {
-        const response = await cohere.chat({
-            model: 'command-r',
+        const stream = await cohere.chatStream({
+            model: 'command-r-plus',
             message: message,
+            chatHistory: chatHistory || [],
         });
-        console.log('Cohere response:', response);
-        res.json({ response: response.text });
+
+        let fullResponse = '';
+        for await (const chat of stream) {
+            if (chat.eventType === 'text-generation') {
+                fullResponse += chat.text;
+            }
+        }
+        //console.log('Cohere response:', fullResponse);
+        res.json({ response: fullResponse });
     } catch (error) {
         console.error('Error processing message:', error);
         res.status(500).send('Error processing message');
