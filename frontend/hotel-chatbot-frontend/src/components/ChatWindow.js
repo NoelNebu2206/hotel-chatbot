@@ -6,11 +6,13 @@ import UserInput from './UserInput';
 const ChatWindow = () => {
     const [messages, setMessages] = useState([]);
     const [chatHistory, setChatHistory] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     const addMessage = async (message) => {
         const newMessages = [...messages, { text: message, isUser: true }];
         setMessages(newMessages);
         setChatHistory([...chatHistory, { role: 'USER', message }]);
+        setIsLoading(true);
 
         try {
             const response = await axios.post('http://localhost:3000/message', {
@@ -30,6 +32,8 @@ const ChatWindow = () => {
                 ...prevMessages,
                 { text: 'Error processing message', isUser: false },
             ]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -39,6 +43,7 @@ const ChatWindow = () => {
                 {messages.map((msg, index) => (
                     <Message key={index} text={msg.text} isUser={msg.isUser} />
                 ))}
+                {isLoading && <Message text="Loading..." isUser={false} />}
             </div>
             <UserInput addMessage={addMessage} />
         </div>
