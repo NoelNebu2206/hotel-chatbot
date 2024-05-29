@@ -1,69 +1,93 @@
-
 .faq-manager {
+    width: 140%; /* Adjusted to 140% to avoid overflow */
     margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #161b20; /* Dark background */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box; /* Include padding in the element's total width and height */
+    overflow:hidden;
+}
+
+.faq-manager h2 {
+    color: #ffffff;
+}
+
+.faq-manager input {
+    width: calc(100% - 20px); /* Adjusted width to avoid overflow */
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.action-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 5px;
+    margin-bottom: 10px; /* Add margin-bottom to create space between buttons */
+}
+
+.action-button:hover {
+    background-color: #0056b3;
 }
 
 .faq-list {
-    max-height: 300px;
+    max-height: 40vh; /* Set a max height for overflow control */
     overflow-y: auto;
-    margin-top: 10px;
-    background-color: #2c2f33; /* Matches the dark background */
-    border-radius: 5px;
+    margin-top: 20px;
     padding: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #2c2f33;
+    border-radius: 5px;
+    box-sizing: border-box; /* Include padding in the element's total width and height */
 }
 
 .faq-item {
-    background-color: #3a3f44;
     padding: 10px;
     margin-bottom: 10px;
+    background-color: #343a40;
     border-radius: 5px;
+    color: white;
     display: flex;
     justify-content: space-between;
-    align-items: center;
 }
 
 .faq-content {
-    flex-grow: 1;
+    flex: 1;
+    margin-right: 5px; /* Add margin to create space between content and buttons */
 }
 
-.faq-question, .faq-answer {
-    margin-bottom: 5px;
-}
-
-.faq-item input {
-    margin: 5px 0;
-}
-
-button {
-    margin-right: 5px;
-}
-
-input[type="text"] {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
-button {
-    padding: 10px;
-    border: none;
+.edit-button {
     background-color: #007bff;
     color: white;
+    padding: 5px 5px;
+    border: none;
     border-radius: 5px;
     cursor: pointer;
 }
 
-button:hover {
+.delete-button {
+    background-color: #c80a04 ;
+    color: white;
+    padding: 5px 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.edit-button:hover {
     background-color: #0056b3;
 }
 
-.faq-item button {
-    background-color: #ff4d4d;
+.delete-button:hover {
+    background-color: #952e2bed;
 }
 
-.faq-item button:hover {
-    background-color: #ff1a1a;
+.no-results {
+    color: #ffffff; /* Ensure text is white */
 }

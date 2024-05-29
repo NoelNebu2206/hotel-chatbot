@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './FaqManager.css'; // Import CSS file for styling
+import './FaqManager.css';
 
 const FaqManager = () => {
     const [faqs, setFaqs] = useState([]);
@@ -11,6 +11,7 @@ const FaqManager = () => {
     const [searchKeyword, setSearchKeyword] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [showNoResults, setShowNoResults] = useState(false);
+    const [showSearchResults, setShowSearchResults] = useState(false); // New state for search results visibility
 
     useEffect(() => {
         fetchFaqs();
@@ -80,6 +81,7 @@ const FaqManager = () => {
             const response = await axios.get(`http://localhost:3000/admin/faqs?search=${searchKeyword}`);
             setSearchResults(response.data);
             setShowNoResults(response.data.length === 0);
+            setShowSearchResults(true); // Show search results
         } catch (error) {
             console.error('Error searching FAQs:', error);
             setSearchResults([]);
@@ -87,10 +89,25 @@ const FaqManager = () => {
         }
     };
 
-    const handleKeyPress = (e) => {
+    const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             handleSearchFaqs();
+        } else {
+            setShowSearchResults(false); // Reset to "Find FAQ" on new input
         }
+    };
+
+    const handleInputChange = (e) => {
+        setSearchKeyword(e.target.value);
+        if (showSearchResults) {
+            setShowSearchResults(false); // Reset to "Find FAQ" on input change
+        }
+    };
+
+    const handleHideSearchResults = () => {
+        setShowSearchResults(false);
+        setSearchResults([]);
+        setShowNoResults(false);
     };
 
     return (
@@ -109,13 +126,13 @@ const FaqManager = () => {
                 onChange={(e) => setAnswer(e.target.value)}
             />
             {selectedFaq ? (
-                <button onClick={() => updateFaq(selectedFaq)}>Update FAQ</button>
+                <button className="action-button" onClick={() => updateFaq(selectedFaq)}>Update FAQ</button>
             ) : (
-                <button onClick={addFaq}>Add FAQ</button>
+                <button className="action-button" onClick={addFaq}>Add FAQ</button>
             )}
 
             <div>
-                <button onClick={handleShowAllFaqs}>
+                <button className="action-button" onClick={handleShowAllFaqs}>
                     {showAllFaqs ? 'Hide All FAQs' : 'Show All FAQs'}
                 </button>
             </div>
@@ -125,10 +142,12 @@ const FaqManager = () => {
                     type="text"
                     placeholder="Search FAQs"
                     value={searchKeyword}
-                    onChange={(e) => setSearchKeyword(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
                 />
-                <button onClick={handleSearchFaqs}>Find FAQ</button>
+                <button className="action-button" onClick={showSearchResults ? handleHideSearchResults : handleSearchFaqs}>
+                    {showSearchResults ? 'Hide Results' : 'Find FAQ'}
+                </button>
             </div>
 
             {showAllFaqs && (
@@ -139,14 +158,14 @@ const FaqManager = () => {
                                 <p><strong>Q:</strong> {faq.question}</p>
                                 <p><strong>A:</strong> {faq.answer}</p>
                             </div>
-                            <button onClick={() => handleSelectFaq(faq)}>Edit</button>
-                            <button onClick={() => deleteFaq(faq._id)}>Delete</button>
+                            <button className="edit-button" onClick={() => handleSelectFaq(faq)}>Edit</button>
+                            <button className="delete-button" onClick={() => deleteFaq(faq._id)}>Delete</button>
                         </div>
                     ))}
                 </div>
             )}
 
-            {searchResults.length > 0 && (
+            {showSearchResults && (
                 <div className="faq-list">
                     {searchResults.map((faq) => (
                         <div key={faq._id} className="faq-item">
@@ -154,15 +173,15 @@ const FaqManager = () => {
                                 <p><strong>Q:</strong> {faq.question}</p>
                                 <p><strong>A:</strong> {faq.answer}</p>
                             </div>
-                            <button onClick={() => handleSelectFaq(faq)}>Edit</button>
-                            <button onClick={() => deleteFaq(faq._id)}>Delete</button>
+                            <button className="edit-button" onClick={() => handleSelectFaq(faq)}>Edit</button>
+                            <button className="delete-button" onClick={() => deleteFaq(faq._id)}>Delete</button>
                         </div>
                     ))}
                 </div>
             )}
 
             {showNoResults && searchKeyword.trim() !== '' && (
-                <p>No FAQs matching the keyword '{searchKeyword}'</p>
+                <p className="no-results">No FAQs matching the keyword '{searchKeyword}'</p>
             )}
         </div>
     );
