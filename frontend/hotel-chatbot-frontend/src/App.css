@@ -1,6 +1,22 @@
 /* App.css */
+
 .App {
   text-align: center;
+  display: flex;
+  flex-direction: column; /* Stack title and content vertically */
+  align-items: left;
+  justify-content: left;
+  /* justify-content: space-between; Space between the chat and admin dashboard */
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box; /* Include padding in the element's total width and height */
+}
+
+.app-title {
+  color: #ffffff; /* Title text color */
+  margin-bottom: 20px; /* Space between the title and the content */
 }
 
 .App-logo {
@@ -40,8 +56,11 @@
 
 .content {
   display: flex;
-  justify-content: space-around;
+  border: white;
+  border-width: 5px;
+  justify-content: center;
   align-items: flex-start;
   margin-top: 20px;
   width: 100%;
+  
 }

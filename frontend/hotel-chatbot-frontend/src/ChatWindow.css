@@ -1,8 +1,8 @@
-/* src/ChatWindow.css */
+/* ChatWindow.css */
 
 body {
-    background-color: #2c2f33; /* Dark background */
-    color: #171212e9; /* Default text color */
+    background-color: #26292d; /* Dark background */
+    color: #141010e9; /* Default text color */
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
@@ -10,25 +10,33 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    overflow: hidden; /* Prevent body overflow */
 }
 
 .App {
-    text-align: center;
+    display: flex;
+    flex-direction: column; /* Stack title and content vertically */
+    justify-content: left;
+    align-items: left;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box; /* Include padding in the element's total width and height */
 }
 
 h1 {
-    margin-top: 20px;
-    color: #ffffffe9; /* Title text color */
+    margin-top: 10px;
+    color: #ffffff; /* Title text color */
+    flex: 1;
+    text-align: center; /* Center align the title */
 }
 
 .chat-window {
+    flex: 10; /* Take up more space for the chat window */
     display: flex;
     flex-direction: column;
     height: 80vh;
-    width: 50vw;
     border: 1px solid #ccc;
     padding: 10px;
     background-color: #23272a; /* Chat window background color */
@@ -51,6 +59,7 @@ h1 {
     max-width: 70%;
     word-wrap: break-word;
     text-align: left;
+    color: black; /* Set text color to black */
 }
 
 .message.user {

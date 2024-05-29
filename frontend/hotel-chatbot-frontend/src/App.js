@@ -5,15 +5,15 @@ import './App.css';
 import './ChatWindow.css';
 
 function App() {
-    return (
-        <div className="App">
-            <h1>Let's Chat!</h1>
-            <div className="content">
-                <ChatWindow />
-                <AdminDashboard />
-            </div>
-        </div>
-    );
+  return (
+      <div className="App">
+          <h1 className="app-title">Talk to OmenaChat</h1>
+          <div className="content">
+              <ChatWindow />
+              <AdminDashboard />
+          </div>
+      </div>
+  );
 }
 
 export default App;

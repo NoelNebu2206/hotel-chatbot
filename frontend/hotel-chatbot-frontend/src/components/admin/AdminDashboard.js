@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import FaqManager from './FaqManager';
-// import DynamicContentManager from './DynamicContentManager';
+import './AdminDashboard.css';
 
 const AdminDashboard = () => {
     const [showFaqs, setShowFaqs] = useState(false);
@@ -12,11 +12,10 @@ const AdminDashboard = () => {
     return (
         <div className="admin-dashboard">
             <h1>Admin Dashboard</h1>
-            <button onClick={handleShowFaqs}>
-                {showFaqs ? 'Hide FAQs' : 'Show All FAQs'}
+            <button className="toggle-button" onClick={handleShowFaqs}>
+                {showFaqs ? 'Hide Manage FAQs' : 'Manage FAQs'}
             </button>
             {showFaqs && <FaqManager />}
-            {/* <DynamicContentManager /> */}
         </div>
     );
 };
