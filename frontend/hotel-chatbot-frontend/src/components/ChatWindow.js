@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Message from './Message';
 import UserInput from './UserInput';
 
 const ChatWindow = () => {
-    const [messages, setMessages] = useState([]);
-    const [chatHistory, setChatHistory] = useState([]);
+    const [messages, setMessages] = useState([{ text: "Hey I'm OmenaChat, how can I assist you today?", isUser: false }]);
+    const [chatHistory, setChatHistory] = useState([{ role: 'CHATBOT', content: "Hey I'm OmenaChat, how can I assist you today?" }]);
     const [isLoading, setIsLoading] = useState(false);
+    const messagesEndRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
 
     const addMessage = async (message) => {
         const newMessages = [...messages, { text: message, isUser: true }];
@@ -53,6 +62,7 @@ const ChatWindow = () => {
                     <Message key={index} text={msg.text} isUser={msg.isUser} />
                 ))}
                 {isLoading && <Message text="Loading..." isUser={false} />}
+                <div ref={messagesEndRef} />
             </div>
             <UserInput addMessage={addMessage} />
         </div>
