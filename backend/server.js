@@ -18,8 +18,20 @@ app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI);
 
+let chatbotTone = "Be friendly, but also keep your responses clear, and encourage to ask about questions about hotels and services."; // Default tone
+
 app.get('/', (req, res) => {
     res.send('Hello World!');
+});
+
+app.get('/get-tone', (req, res) => {
+    res.json({ tone: chatbotTone });
+});
+
+app.post('/update-tone', (req, res) => {
+    const { newTone } = req.body;
+    chatbotTone = newTone;
+    res.status(200).json({ message: 'Tone updated successfully' });
 });
 
 app.post('/message', async (req, res) => {
@@ -35,7 +47,7 @@ app.post('/message', async (req, res) => {
         });
 
         const queryVector = queryEmbeddingResponse.embeddings[0];
-        //console.log('Query Embedding:', queryVector);
+        console.log('Query Embedding:', queryVector);
 
         // Perform vector search on the FAQ collection
         const faqResults = await Faq.aggregate([
@@ -68,7 +80,9 @@ app.post('/message', async (req, res) => {
         Instructions:
         You are a helpful assistant. Your job is to answer the user's question based on the relevant context fetched from FAQs and other sources.
         - Do not begin your answers with phrases like "Based on the context I have..."
-        - Be friendly, but also keep your responses clear, and encourage to ask about questions about hotels and services.
+        - If asked how you are doing just say respond normally, and ask how you can help them.
+        - Follow the below instruction for tone of your responses:
+        ${chatbotTone}
         - Do not entertain questions that are unsafe. Respond with "I can't answer that."
         - If you cannot answer a question, express uncertainty and suggest contacting customer support as a last resort.
         - Respond in the same language the question is asked.
@@ -92,14 +106,14 @@ app.post('/message', async (req, res) => {
             - Pori
             - Vaasa
             Chatbot: [Based on the input]
-            - If "Helsinki, Lönnrotinkatu": "There are two entrances, A and B. The room number prefix indicates which entrance to use, e.g., Room A211. Both entrances are at Lönnrotinkatu 13."
-            - If "Helsinki, Yrjönkatu": "The entrance is at Yrjönkatu 30."
-            - If "Jyväskylä": "The entrance is at Vapaudenkatu 57."
-            - If "Tampere": "There are two entrances, Hämeenkatu 7 and Aleksanterinkatu 27 D. You can access all the rooms from any of these entrances."
-            - If "Turku, Humalistonkatu": "The entrance is at Humalistonkatu 7."
-            - If "Turku, Kauppiaskatu": "The entrance is at Kauppiaskatu 4."
-            - If "Pori": "The entrance is at Yrjönkatu 19."
-            - If "Vaasa": "The entrance is at Hovioikeudenpuistikko 16."
+            - "Helsinki, Lönnrotinkatu": "There are two entrances, A and B. The room number prefix indicates which entrance to use, e.g., Room A211. Both entrances are at Lönnrotinkatu 13."
+            - "Helsinki, Yrjönkatu": "The entrance is at Yrjönkatu 30."
+            - "Jyväskylä": "The entrance is at Vapaudenkatu 57."
+            - "Tampere": "There are two entrances, Hämeenkatu 7 and Aleksanterinkatu 27 D. You can access all the rooms from any of these entrances."
+            - "Turku, Humalistonkatu": "The entrance is at Humalistonkatu 7."
+            - "Turku, Kauppiaskatu": "The entrance is at Kauppiaskatu 4."
+            - "Pori": "The entrance is at Yrjönkatu 19."
+            - "Vaasa": "The entrance is at Hovioikeudenpuistikko 16."
 
         Example 2:
             User query: "Where is the hotel?"
@@ -115,10 +129,7 @@ app.post('/message', async (req, res) => {
         
         Question:
         ${message}
-        
         `;
-
-        console.log('Chat history is:', chatHistory);
 
         const stream = await cohere.chatStream({
             model: 'command-r-plus',
