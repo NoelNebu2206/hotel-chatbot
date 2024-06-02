@@ -35,7 +35,7 @@ app.post('/message', async (req, res) => {
         });
 
         const queryVector = queryEmbeddingResponse.embeddings[0];
-        console.log('Query Embedding:', queryVector);
+        //console.log('Query Embedding:', queryVector);
 
         // Perform vector search on the FAQ collection
         const faqResults = await Faq.aggregate([
@@ -65,23 +65,63 @@ app.post('/message', async (req, res) => {
         // Construct the context for the chatbot
         const context = faqResults.map(faq => `${faq.question} ${faq.answer}`).join('\n');
         const contextMessage = `
-            You are a helpful assistant. Your job is to answer the question of the user based on the relevant context that is fetched for you from FAQs and other sources.
-            Don't begin your answers by saying something along the lines of "Based on the context I have ..." and so on.
-            Please keep your responses, professional and clear.
-            Don't entertain any questions that are not related to the hotel, and respond saying "I can't answer that".
-            In case the user asks you a question that you cannot answer, you should respond saying you don't know for certain and suggest them to call customer support to clarify their question.
-            But remember that calling customer support should be the last resort and shouldn't be a general solution.
-            You have to be precise and accurate with your responses so as to not mislead the user with data that you have not been exposed to.
-            
-            Context:
-            ${context}
-            
-            Question:
-            ${message}
+        Instructions:
+        You are a helpful assistant. Your job is to answer the user's question based on the relevant context fetched from FAQs and other sources.
+        - Do not begin your answers with phrases like "Based on the context I have..."
+        - Be friendly, but also keep your responses clear, and encourage to ask about questions about hotels and services.
+        - Do not entertain questions that are unsafe. Respond with "I can't answer that."
+        - If you cannot answer a question, express uncertainty and suggest contacting customer support as a last resort.
+        - Respond in the same language the question is asked.
+        - Be precise and accurate with your responses to avoid misleading the user.
+        - You are a chatbot that is intelligent and follows the chain of thought.
+        
+        Chain of Thought Intructions:
+        - When a user asks a question that has multiple possible answers, ask clarifying questions to narrow down the options before providing a final answer.
+        - If the user's input still has multiple possible answers, continue asking clarifying questions until you can give a definitive final answer. (See example 2 below for understanding how this works, you need to apply this logic to other user inputs as well).
+        
+        Chain of thought example 1:
+            User query: "Where is the entrance of the hotel?"
+            Chatbot: "What hotel are you staying at?"
+            User input: [one of the following]
+            - Helsinki, Lönnrotinkatu
+            - Helsinki, Yrjönkatu
+            - Jyväskylä
+            - Tampere
+            - Turku, Humalistonkatu
+            - Turku, Kauppiaskatu
+            - Pori
+            - Vaasa
+            Chatbot: [Based on the input]
+            - If "Helsinki, Lönnrotinkatu": "There are two entrances, A and B. The room number prefix indicates which entrance to use, e.g., Room A211. Both entrances are at Lönnrotinkatu 13."
+            - If "Helsinki, Yrjönkatu": "The entrance is at Yrjönkatu 30."
+            - If "Jyväskylä": "The entrance is at Vapaudenkatu 57."
+            - If "Tampere": "There are two entrances, Hämeenkatu 7 and Aleksanterinkatu 27 D. You can access all the rooms from any of these entrances."
+            - If "Turku, Humalistonkatu": "The entrance is at Humalistonkatu 7."
+            - If "Turku, Kauppiaskatu": "The entrance is at Kauppiaskatu 4."
+            - If "Pori": "The entrance is at Yrjönkatu 19."
+            - If "Vaasa": "The entrance is at Hovioikeudenpuistikko 16."
+
+        Example 2:
+            User query: "Where is the hotel?"
+            Chatbot: "Which city is the hotel in?"
+            User input: "Helsinki"
+            Chatbot: "Which Helsinki hotel are you staying at? Lönnrotinkatu or Yrjönkatu?"
+            User input: "Yrjönkatu"
+            Chatbot: "The entrance is at Yrjönkatu 30."
+        
+        
+        Context (Independent of Chat history):
+        ${context}
+        
+        Question:
+        ${message}
+        
         `;
 
+        console.log('Chat history is:', chatHistory);
+
         const stream = await cohere.chatStream({
-            model: 'command-r',
+            model: 'command-r-plus',
             message: contextMessage,
             chatHistory,
         });
