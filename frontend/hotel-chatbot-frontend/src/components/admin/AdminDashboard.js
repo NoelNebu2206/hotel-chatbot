@@ -6,7 +6,7 @@ import './AdminDashboard.css';
 const AdminDashboard = () => {
     const [showFaqs, setShowFaqs] = useState(false);
     const [showPromptEditor, setShowPromptEditor] = useState(false);
-    const [tone, setTone] = useState("Be friendly, but also keep your responses clear, and encourage to ask about questions about hotels and services.");
+    const [tone, setTone] = useState("Keep your responses as short and concise as possible, while maintaining a friendly tone.");
 
     useEffect(() => {
         // Fetch the current tone from the server on initial render

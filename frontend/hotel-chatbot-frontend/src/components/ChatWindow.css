@@ -33,7 +33,7 @@ h1 {
 }
 
 .chat-window {
-    flex: 10; /* Take up more space for the chat window */
+    flex: 50; /* Take up more space for the chat window */
     display: flex;
     flex-direction: column;
     height: 80vh;
@@ -51,11 +51,15 @@ h1 {
     margin-bottom: 10px;
 }
 
-.message {
-    padding: 10px;
-    border-radius: 5px;
+.message-container {
+    display: flex;
+    align-items: center;
     margin-bottom: 5px;
-    width: fit-content;
+}
+
+.message {
+    padding: 5px 10px;
+    border-radius: 5px;
     max-width: 70%;
     word-wrap: break-word;
     text-align: left;
@@ -94,5 +98,19 @@ h1 {
 }
 
 .user-input button:hover {
+    background-color: #0056b3;
+}
+
+.copy-button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.copy-button:hover {
     background-color: #0056b3;
 }
