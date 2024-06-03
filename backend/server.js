@@ -18,7 +18,7 @@ app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI);
 
-let chatbotTone = "Be friendly, but also keep your responses clear, and encourage to ask about questions about hotels and services."; // Default tone
+let chatbotTone = "Keep your responses as short and concise as possible, while maintaining a friendly tone."; // Default tone
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
@@ -88,6 +88,7 @@ app.post('/message', async (req, res) => {
         - Respond in the same language the question is asked.
         - Be precise and accurate with your responses to avoid misleading the user.
         - You are a chatbot that is intelligent and follows the chain of thought.
+        - At the end of your message, populate your response with suggested questions so the user doesn't have to do all the efforts of asking questions.
         
         Chain of Thought Intructions:
         - When a user asks a question that has multiple possible answers, ask clarifying questions to narrow down the options before providing a final answer.
