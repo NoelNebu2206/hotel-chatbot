@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './FaqManager.css';
+import { apiUrl } from '../../constants';
 
 const FaqManager = () => {
     const [faqs, setFaqs] = useState([]);
@@ -19,7 +20,7 @@ const FaqManager = () => {
 
     const fetchFaqs = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/admin/faqs');
+            const response = await axios.get(`${apiUrl}/admin/faqs`);
             setFaqs(response.data);
         } catch (error) {
             console.error('Error fetching FAQs:', error);
@@ -29,7 +30,7 @@ const FaqManager = () => {
     const addFaq = async () => {
         const newFaq = { question, answer };
         try {
-            await axios.post('http://localhost:3000/admin/faqs', newFaq);
+            await axios.post(`${apiUrl}/admin/faqs`, newFaq);
             setQuestion('');
             setAnswer('');
             fetchFaqs();
@@ -41,7 +42,7 @@ const FaqManager = () => {
     const updateFaq = async (id) => {
         const updatedFaq = { question, answer };
         try {
-            await axios.put(`http://localhost:3000/admin/faqs/${id}`, updatedFaq);
+            await axios.put(`${apiUrl}/admin/faqs/${id}`, updatedFaq);
             setQuestion('');
             setAnswer('');
             setSelectedFaq(null);
@@ -53,7 +54,7 @@ const FaqManager = () => {
 
     const deleteFaq = async (id) => {
         try {
-            await axios.delete(`http://localhost:3000/admin/faqs/${id}`);
+            await axios.delete(`${apiUrl}/admin/faqs/${id}`);
             fetchFaqs();
         } catch (error) {
             console.error('Error deleting FAQ:', error);
@@ -78,7 +79,7 @@ const FaqManager = () => {
         }
 
         try {
-            const response = await axios.get(`http://localhost:3000/admin/faqs?search=${searchKeyword}`);
+            const response = await axios.get(`${apiUrl}/admin/faqs?search=${searchKeyword}`);
             setSearchResults(response.data);
             setShowNoResults(response.data.length === 0);
             setShowSearchResults(true); // Show search results

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Message from './Message';
 import UserInput from './UserInput';
+import { apiUrl } from '../constants';
 
 const ChatWindow = () => {
     const [messages, setMessages] = useState([{ text: "Hey I'm OmenaChat, how can I assist you today?", isUser: false }]);
@@ -33,7 +34,7 @@ const ChatWindow = () => {
         setIsLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:3000/message', {
+            const response = await axios.post(`${apiUrl}/message`, {
                 message,
                 chatHistory: chatHistoryToSend,
             });
