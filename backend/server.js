@@ -3,15 +3,15 @@ const serverless = require('serverless-http');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const { CohereClient } = require('cohere-ai');
+const OpenAI = require('openai');
 const adminRoutes = require('./routes/admin');
 const Faq = require('./models/Faq');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-const cohere = new CohereClient({
-    token: process.env.COHERE_API_KEY,
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
 });
 
 app.use(cors());  // Enable CORS
@@ -19,7 +19,7 @@ app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI);
 
-let chatbotTone = "Be friendly, but also keep your responses clear, and encourage to ask about questions about hotels and services."; // Default tone
+let chatbotTone = "Keep your responses as short and concise as possible, while maintaining a friendly tone."; // Default tone
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
@@ -35,20 +35,37 @@ app.post('/update-tone', (req, res) => {
     res.status(200).json({ message: 'Tone updated successfully' });
 });
 
+const translateText = async (text, targetLanguage) => {
+    console.log(`Translate the following text to ${targetLanguage}: ${text}`);
+    const completion = await openai.chat.completions.create({
+        messages: [{ role: "system", content: `Translate the following text to ${targetLanguage}: ${text}` }],
+        model: "gpt-3.5-turbo",
+        max_tokens: 1000,
+        temperature: 0.1,
+    });
+    return completion.choices[0].message.content.trim();
+};
+
 app.post('/message', async (req, res) => {
-    const { message, chatHistory } = req.body;
+    const { message, chatHistory, language } = req.body;
     console.log('Received message:', message);
+    console.log('Received language:', language);
 
     try {
+        // Translate user message to English if necessary
+        // const messageInEnglish = language !== 'English' ? await translateText(message, 'English') : message;
+        // console.log('Translated message:', messageInEnglish);
+
         // Generate embedding for the user query
-        const queryEmbeddingResponse = await cohere.embed({
-            texts: [message],
-            model: 'embed-english-v3.0',
-            inputType: 'search_query',
+        const queryEmbeddingResponse = await openai.embeddings.create({
+            input: [message],
+            model: 'text-embedding-3-small',
+            encoding_format: 'float',
+            //dimensions: 1024,
         });
 
-        const queryVector = queryEmbeddingResponse.embeddings[0];
-        console.log('Query Embedding:', queryVector);
+        const queryVector = queryEmbeddingResponse.data[0].embedding;
+        //console.log('Query Embedding:', queryVector);
 
         // Perform vector search on the FAQ collection
         const faqResults = await Faq.aggregate([
@@ -57,7 +74,7 @@ app.post('/message', async (req, res) => {
                     'index': 'vector_index',
                     'path': 'embedding',
                     'queryVector': queryVector,
-                    'numCandidates': 5,  // Number of nearest neighbors to retrieve
+                    'numCandidates': 5,
                     'limit': 5
                 }
             },
@@ -75,23 +92,24 @@ app.post('/message', async (req, res) => {
 
         console.log('Vector Search Results:', faqResults);
 
+        console.log('Chat History Results:', chatHistory);
+
         // Construct the context for the chatbot
         const context = faqResults.map(faq => `${faq.question} ${faq.answer}`).join('\n');
-        const contextMessage = `
+        const systemPrompt = `
         Instructions:
-        You are a helpful assistant. Your job is to answer the user's question based on the relevant context fetched from FAQs and other sources.
+        - You are a helpful assistant. Your job is to answer the user's question based on the relevant context fetched from FAQs and other sources.
         - Do not begin your answers with phrases like "Based on the context I have..."
         - If asked how you are doing just say respond normally, and ask how you can help them.
         - Follow the below instruction for tone of your responses:
         ${chatbotTone}
         - Do not entertain questions that are unsafe. Respond with "I can't answer that."
         - If you cannot answer a question, express uncertainty and suggest contacting customer support as a last resort.
-        - Respond in the same language the question is asked.
         - Be precise and accurate with your responses to avoid misleading the user.
+        - Your Chat History could be in a different language, so make sure to generate responses accurately in that language based on the context fetched for you in English.
         - You are a chatbot that is intelligent and follows the chain of thought.
-        - At the end of your message, populate your response with suggested questions so the user doesn't have to do all the efforts of asking questions.
         
-        Chain of Thought Intructions:
+        Chain of Thought Instructions:
         - When a user asks a question that has multiple possible answers, ask clarifying questions to narrow down the options before providing a final answer.
         - If the user's input still has multiple possible answers, continue asking clarifying questions until you can give a definitive final answer. (See example 2 below for understanding how this works, you need to apply this logic to other user inputs as well).
         
@@ -117,7 +135,7 @@ app.post('/message', async (req, res) => {
             - "Pori": "The entrance is at Yrjönkatu 19."
             - "Vaasa": "The entrance is at Hovioikeudenpuistikko 16."
 
-        Example 2:
+        Chain of thought example 2:
             User query: "Where is the hotel?"
             Chatbot: "Which city is the hotel in?"
             User input: "Helsinki"
@@ -129,23 +147,33 @@ app.post('/message', async (req, res) => {
         Context (Independent of Chat history):
         ${context}
         
-        Question:
+        User query:
         ${message}
         `;
 
-        const stream = await cohere.chatStream({
-            model: 'command-r-plus',
-            message: contextMessage,
-            chatHistory,
+        // Format the chat history for the OpenAI API
+        const messages = [
+            { role: "system", content: systemPrompt },
+            ...chatHistory.map(entry => ({
+                role: entry.role === 'CHATBOT' ? 'assistant' : 'user',
+                content: entry.message
+            }))
+        ];
+
+        console.log('Formatted messages:', messages);
+
+        // Generate a response using OpenAI
+        const chatResponse = await openai.chat.completions.create({
+            model: 'gpt-4o',
+            messages,
         });
 
-        let fullResponse = '';
-        for await (const chat of stream) {
-            if (chat.eventType === 'text-generation') {
-                fullResponse += chat.text;
-            }
-        }
-        console.log('Cohere response:', fullResponse);
+        const fullResponse = chatResponse.choices[0].message.content.trim();
+        console.log('OpenAI response:', fullResponse);
+
+        // Translate the response back to the selected language if necessary
+        // const finalResponse = language !== 'English' ? await translateText(fullResponse, language) : fullResponse;
+        // console.log('Translated response:', finalResponse);
 
         res.json({ response: fullResponse });
     } catch (error) {
