@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import FaqManager from './FaqManager';
 import './AdminDashboard.css';
+import { apiUrl } from '../../constants';
 
 const AdminDashboard = () => {
     const [showFaqs, setShowFaqs] = useState(false);
@@ -12,7 +13,7 @@ const AdminDashboard = () => {
         // Fetch the current tone from the server on initial render
         const fetchTone = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/get-tone');
+                const response = await axios.get(`${apiUrl}/get-tone`);
                 setTone(response.data.tone);
             } catch (error) {
                 console.error('Error fetching tone:', error);
@@ -31,7 +32,7 @@ const AdminDashboard = () => {
 
     const handleSavePrompt = async () => {
         try {
-            await axios.post('http://localhost:3000/update-tone', { newTone: tone });
+            await axios.post(`${apiUrl}/update-tone`, { newTone: tone });
             alert('Prompt tone saved successfully');
         } catch (error) {
             console.error('Error saving prompt tone:', error);

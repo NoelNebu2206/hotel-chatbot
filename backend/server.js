@@ -1,4 +1,5 @@
 require('dotenv').config();
+const serverless = require('serverless-http');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -18,7 +19,7 @@ app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI);
 
-let chatbotTone = "Keep your responses as short and concise as possible, while maintaining a friendly tone."; // Default tone
+let chatbotTone = "Be friendly, but also keep your responses clear, and encourage to ask about questions about hotels and services."; // Default tone
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
@@ -156,6 +157,15 @@ app.post('/message', async (req, res) => {
 // Admin routes
 app.use('/admin', adminRoutes);
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+if (process.env.LOCAL == 'true') {
+    app.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+    });
+}
+// const server = awsServerlessExpress.createServer(app);
+// exports.handler = (event, context) => {
+//     console.log(event);
+//     console.log(context);
+//     awsServerlessExpress.proxy(server, event, context);
+// };
+exports.handler = serverless(app);

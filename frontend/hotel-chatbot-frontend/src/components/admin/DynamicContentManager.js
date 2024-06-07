@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { apiUrl } from '../../constants';
 
 const DynamicContentManager = () => {
     const [content, setContent] = useState([]);
@@ -12,7 +13,7 @@ const DynamicContentManager = () => {
 
     const fetchContent = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/admin/dynamic-content');
+            const response = await axios.get(`${apiUrl}/admin/dynamic-content`);
             setContent(response.data);
         } catch (error) {
             console.error('Error fetching dynamic content:', error);
@@ -21,7 +22,7 @@ const DynamicContentManager = () => {
 
     const addContent = async () => {
         const newContent = { key, value };
-        await axios.post('http://localhost:3000/admin/dynamic-content', newContent);
+        await axios.post(`${apiUrl}/admin/dynamic-content`, newContent);
         setKey('');
         setValue('');
         fetchContent();
@@ -29,12 +30,12 @@ const DynamicContentManager = () => {
 
     const updateContent = async (id) => {
         const updatedContent = { key, value };
-        await axios.put(`http://localhost:3000/admin/dynamic-content/${id}`, updatedContent);
+        await axios.put(`${apiUrl}/admin/dynamic-content/${id}`, updatedContent);
         fetchContent();
     };
 
     const deleteContent = async (id) => {
-        await axios.delete(`http://localhost:3000/admin/dynamic-content/${id}`);
+        await axios.delete(`${apiUrl}/admin/dynamic-content/${id}`);
         fetchContent();
     };
 
