@@ -3,7 +3,7 @@ import axios from 'axios';
 import Message from './Message';
 import UserInput from './UserInput';
 
-const ChatWindow = () => {
+const ChatWindow = ({ selectedLanguage }) => {
     const [messages, setMessages] = useState([{ text: "Hey I'm OmenaChat, how can I assist you today?", isUser: false }]);
     const [chatHistory, setChatHistory] = useState([{ role: 'CHATBOT', content: "Hey I'm OmenaChat, how can I assist you today?" }]);
     const [isLoading, setIsLoading] = useState(false);
@@ -17,18 +17,39 @@ const ChatWindow = () => {
         scrollToBottom();
     }, [messages]);
 
+    useEffect(() => {
+        // Handle language change by refreshing the chat window
+        setMessages([{ text: getGreetingMessage(selectedLanguage), isUser: false }]);
+        setChatHistory([{ role: 'CHATBOT', content: getGreetingMessage(selectedLanguage) }]);
+    }, [selectedLanguage]);
+
+    const getGreetingMessage = (lang) => {
+        const greetings = {
+            English: "Hey I'm OmenaChat, how can I assist you today?",
+            Finnish: "Hei, olen OmenaChat, kuinka voin auttaa sinua tänään?",
+            Swedish: "Hej, jag är OmenaChat, hur kan jag hjälpa dig idag?"
+            // Add more greetings for other languages here
+        };
+        return greetings[lang] || greetings['English'];
+    };
+
     const addMessage = async (message) => {
         const newMessages = [...messages, { text: message, isUser: true }];
         setMessages(newMessages);
 
         // Chat history up to the latest user message
-        const chatHistoryToSend = chatHistory.map((entry) => ({
-            role: entry.role,
-            message: entry.content,
-        }));
+        // const chatHistoryToSend = chatHistory.map((entry) => ({
+        //     role: entry.role,
+        //     message: entry.content,
+        // }));
 
         // Add the latest user message to chat history
         const updatedChatHistory = [...chatHistory, { role: 'USER', content: message }];
+
+        const chatHistoryToSend = updatedChatHistory.map((entry) => ({
+            role: entry.role,
+            message: entry.content,
+        }));
 
         setIsLoading(true);
 
@@ -36,6 +57,7 @@ const ChatWindow = () => {
             const response = await axios.post('http://localhost:3000/message', {
                 message,
                 chatHistory: chatHistoryToSend,
+                language: selectedLanguage,
             });
 
             setMessages((prevMessages) => [
