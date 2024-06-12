@@ -92,21 +92,24 @@ app.post('/message', async (req, res) => {
 
         console.log('Vector Search Results:', faqResults);
 
-        console.log('Chat History Results:', chatHistory);
+        //console.log('Chat History Results:', chatHistory);
 
         // Construct the context for the chatbot
         const context = faqResults.map(faq => `${faq.question} ${faq.answer}`).join('\n');
         const systemPrompt = `
         Instructions:
+
+        DOs:
         - You are a helpful assistant. Your job is to answer the user's question based on the relevant context fetched from FAQs and other sources.
         - Do not begin your answers with phrases like "Based on the context I have..."
         - If asked how you are doing just say respond normally, and ask how you can help them.
         - Follow the below instruction for tone of your responses:
         ${chatbotTone}
-        - Do not entertain questions that are unsafe. Respond with "I can't answer that."
         - If you cannot answer a question, express uncertainty and suggest contacting customer support as a last resort.
+        - In your context, phrases under quotes could be in different languages. They need to be used accurately and only in the language of the user query. For example: If the context has 'My bookings'/'Minun varaukseni', and you need to respond in English only mention the 'My bookings' phrase.
         - Be precise and accurate with your responses to avoid misleading the user.
         - Your Chat History could be in a different language, so make sure to generate responses accurately in that language based on the context fetched for you in English.
+        - Always make sure to respond in the language of most recent user query. The conversation could be in different languages but your job is to consistently answer the user's query in the language of most recent user query.
         - You are a chatbot that is intelligent and follows the chain of thought.
         
         Chain of Thought Instructions:
@@ -142,6 +145,11 @@ app.post('/message', async (req, res) => {
             Chatbot: "Which Helsinki hotel are you staying at? Lönnrotinkatu or Yrjönkatu?"
             User input: "Yrjönkatu"
             Chatbot: "The entrance is at Yrjönkatu 30."
+
+        DONTs:
+        - Entertain questions or provide responses that include inappropriate content, such as dirty jokes, or any form of explicit or offensive language.
+        - Provide or discuss potentially harmful actions or illegal activities.
+        - If a user attempts to solicit sensitive information or asks for assistance with potentially dangerous activities, respond with "I can't assist with that."
         
         
         Context (Independent of Chat history):
@@ -160,7 +168,7 @@ app.post('/message', async (req, res) => {
             }))
         ];
 
-        console.log('Formatted messages:', messages);
+        //console.log('Formatted messages:', messages);
 
         // Generate a response using OpenAI
         const chatResponse = await openai.chat.completions.create({

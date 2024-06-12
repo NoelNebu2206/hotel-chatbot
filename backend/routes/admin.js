@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { CohereClient } = require('cohere-ai');
+const OpenAI = require('openai');
 const Faq = require('../models/Faq');
 const DynamicContent = require('../models/DynamicContent');
 
-const cohere = new CohereClient({
-    token: process.env.COHERE_API_KEY,
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
 });
 
 // CRUD operations for FAQs
@@ -13,35 +13,73 @@ const cohere = new CohereClient({
 router.get('/faqs', async (req, res) => {
     const { search } = req.query;
     try {
-        let faqs;
         if (search) {
-            const regex = new RegExp(search, 'i'); // 'i' flag for case-insensitive search
-            faqs = await Faq.find({ $or: [{ question: regex }, { answer: regex }] });
+            // Generate embeddings for the search query
+            const queryEmbeddingResponse = await openai.embeddings.create({
+                input: [search],
+                model: 'text-embedding-3-small',
+                encoding_format: 'float',
+            });
+
+            const queryVector = queryEmbeddingResponse.data[0].embedding;
+
+            // Perform vector search on the FAQ collection
+            const faqResults = await Faq.aggregate([
+                {
+                    '$vectorSearch': {
+                        'index': 'vector_index',
+                        'path': 'embedding',
+                        'queryVector': queryVector,
+                        'numCandidates': 8,
+                        'limit': 5
+                    }
+                },
+                {
+                    '$project': {
+                        '_id': 1,
+                        'question': 1,
+                        'answer': 1,
+                        'score': {
+                            '$meta': 'vectorSearchScore'
+                        }
+                    }
+                }
+            ]);
+
+            console.log('Vector Search Results:', faqResults);
+
+            // Filter results with a score above the threshold
+            const filteredResults = faqResults.filter(faq => faq.score >= 0.60);
+
+            if (filteredResults.length > 0) {
+                res.json(filteredResults);
+            } else {
+                res.status(200).json([]);
+            }
         } else {
-            faqs = await Faq.find();
+            const faqs = await Faq.find();
+            res.json(faqs);
         }
-        res.json(faqs);
     } catch (error) {
         console.error('Error fetching FAQs:', error);
         res.status(500).json({ message: 'Error fetching FAQs' });
     }
 });
 
-
-//Add a new FAQ
+// Add a new FAQ
 router.post('/faqs', async (req, res) => {
     const { question, answer } = req.body;
 
     try {
         const faqText = question + ' ' + answer;
         // Generate embeddings for the concatenated question and answer
-        const embedResponse = await cohere.embed({
-            texts: [faqText],
-            inputType: 'search_document',  // Correct input type for storing in a vector DB
-            model: 'embed-english-v3.0',
+        const faqEmbedding = await openai.embeddings.create({
+            input: [faqText],
+            model: 'text-embedding-3-small',
+            encoding_format: 'float',
         });
 
-        const embedding = embedResponse.embeddings[0];
+        const embedding = faqEmbedding.data[0].embedding;
 
         // Create new FAQ document
         const newFaq = new Faq({
@@ -60,7 +98,7 @@ router.post('/faqs', async (req, res) => {
     }
 });
 
-//Update an existing FAQ
+// Update an existing FAQ
 router.put('/faqs/:id', async (req, res) => {
     const { id } = req.params;
     const { question, answer } = req.body;
@@ -68,13 +106,13 @@ router.put('/faqs/:id', async (req, res) => {
     try {
         const faqText = question + ' ' + answer;
         // Generate embeddings for the concatenated question and answer
-        const embedResponse = await cohere.embed({
-            texts: [faqText],
-            inputType: 'search_document',
-            model: 'embed-english-v3.0',
+        const faqEmbedding = await openai.embeddings.create({
+            input: [faqText],
+            model: 'text-embedding-3-small',
+            encoding_format: 'float',
         });
 
-        const embedding = embedResponse.embeddings[0];
+        const embedding = faqEmbedding.data[0].embedding;
 
         // Update FAQ document
         const updatedFaq = await Faq.findByIdAndUpdate(id, { question, answer, embedding }, { new: true });
@@ -85,7 +123,6 @@ router.put('/faqs/:id', async (req, res) => {
         res.status(500).json({ message: 'Error updating FAQ' });
     }
 });
-
 
 // Delete an FAQ
 router.delete('/faqs/:id', async (req, res) => {
