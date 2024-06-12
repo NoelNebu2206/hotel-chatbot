@@ -198,10 +198,4 @@ if (process.env.LOCAL == 'true') {
         console.log(`Server running on port ${port}`);
     });
 }
-// const server = awsServerlessExpress.createServer(app);
-// exports.handler = (event, context) => {
-//     console.log(event);
-//     console.log(context);
-//     awsServerlessExpress.proxy(server, event, context);
-// };
 exports.handler = serverless(app);
